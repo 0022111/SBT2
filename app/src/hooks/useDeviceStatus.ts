@@ -20,12 +20,14 @@ export interface DeviceStatus {
   chargeVoltageLimit: boolean;
   permanentBluetooth: boolean;
   boostVisualization: boolean;
+  isHitInProgress: boolean;
 }
 
 export function useDeviceStatus(pollInterval = 500) {
   const { characteristics, deviceInfo, connectionState } = useBluetooth();
   const [status, setStatus] = useState<DeviceStatus | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const hitStateRef = useRef({ prevShutdownSecs: -1, inProgress: false });
 
   const parseDeviceStatus = useCallback(
     (value: DataView): DeviceStatus | null => {
@@ -54,6 +56,28 @@ export function useDeviceStatus(pollInterval = 500) {
         lastTargetTemp: targetTemp,
       });
 
+      // Hit Detection (Pure Timer Model)
+      let hitInProgress = hitStateRef.current.inProgress;
+      const prevShutdownSecs = hitStateRef.current.prevShutdownSecs;
+      
+      const isHeaterOn = heaterModeValue > 0;
+      
+      if (!isHeaterOn) {
+        hitInProgress = false;
+      } else {
+        const timerResetTrigger = prevShutdownSecs !== -1 && autoShutdownTimer > prevShutdownSecs;
+        if (timerResetTrigger) {
+          hitInProgress = true;
+        } else if (hitInProgress) {
+          const isTimerTickingDown = prevShutdownSecs !== -1 && autoShutdownTimer < prevShutdownSecs;
+          if (isTimerTickingDown) {
+            hitInProgress = false;
+          }
+        }
+      }
+      
+      hitStateRef.current = { prevShutdownSecs: isHeaterOn ? autoShutdownTimer : -1, inProgress: hitInProgress };
+
       return {
         targetTemp,
         boostTemp: value.getUint8(6),
@@ -70,6 +94,7 @@ export function useDeviceStatus(pollInterval = 500) {
         chargeVoltageLimit: !!(settings & 0x20),
         permanentBluetooth,
         boostVisualization,
+        isHitInProgress: hitInProgress,
       };
     },
     [deviceInfo.type]

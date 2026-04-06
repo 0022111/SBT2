@@ -9,6 +9,7 @@ interface RadialGaugeProps {
   setpointReached: boolean;
   effectiveTemp?: number;
   boostLabel?: string;
+  isHitInProgress: boolean;
 }
 
 export function RadialGauge({
@@ -20,6 +21,7 @@ export function RadialGauge({
   setpointReached,
   effectiveTemp,
   boostLabel,
+  isHitInProgress,
 }: RadialGaugeProps) {
   // SVG arc geometry — 270° sweep
   const radius = 110;
@@ -71,6 +73,18 @@ export function RadialGauge({
           strokeDasharray={`${arcLength} ${circumference}`}
           strokeDashoffset={dashOffset}
         />
+
+        {/* Breathing Hit Ring overlay */}
+        {isHitInProgress && (
+          <circle
+            className="gauge__hit-ring"
+            cx={cx}
+            cy={cy}
+            r={radius}
+            strokeDasharray={`${arcLength} ${circumference}`}
+            strokeDashoffset={0}
+          />
+        )}
       </svg>
 
       {/* Center text overlay */}

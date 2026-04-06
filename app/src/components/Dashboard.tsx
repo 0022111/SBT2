@@ -1,43 +1,96 @@
 import { useState } from "react";
-import {
-  Box,
-  Typography,
-  IconButton,
-  Paper,
-  Slider,
-  Chip,
-  Button,
-  AppBar,
-  Toolbar,
-  LinearProgress,
-  Switch,
-  FormControlLabel,
-  Divider,
-  Collapse,
-} from "@mui/material";
-import BluetoothConnectedIcon from "@mui/icons-material/BluetoothConnected";
-import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
-import BatteryFullIcon from "@mui/icons-material/BatteryFull";
-import Battery60Icon from "@mui/icons-material/Battery60";
-import Battery20Icon from "@mui/icons-material/Battery20";
-import BoltIcon from "@mui/icons-material/Bolt";
-import SettingsIcon from "@mui/icons-material/Settings";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { useBluetooth } from "../providers/BluetoothProvider";
 import { useDeviceStatus } from "../hooks/useDeviceStatus";
+import { RadialGauge } from "./RadialGauge";
+import "./Dashboard.css";
 
-function BatteryIcon({ level }: { level: number }) {
-  if (level > 60) return <BatteryFullIcon />;
-  if (level > 20) return <Battery60Icon />;
-  return <Battery20Icon />;
+/* ── Inline SVG Icons ─────────────────────────────────── */
+
+function BoltIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+    </svg>
+  );
 }
+
+function PowerIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+      <line x1="12" y1="2" x2="12" y2="12" />
+    </svg>
+  );
+}
+
+function SettingsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  );
+}
+
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+function BatteryBarIcon({ level }: { level: number }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="1" y="6" width="18" height="12" rx="2" />
+      <line x1="23" y1="10" x2="23" y2="14" />
+      {level > 10 && (
+        <rect
+          x="4"
+          y="9"
+          width={Math.min(12, Math.round((level / 100) * 12))}
+          height="6"
+          rx="1"
+          fill="currentColor"
+          stroke="none"
+        />
+      )}
+    </svg>
+  );
+}
+
+/* ── Helpers ──────────────────────────────────────────── */
 
 function batteryColor(level: number): string {
-  if (level > 60) return "#4caf50";
-  if (level > 20) return "#ff9800";
-  return "#f44336";
+  if (level > 60) return "var(--success)";
+  if (level > 20) return "var(--accent)";
+  return "var(--danger)";
 }
+
+/* ── Toggle Component ─────────────────────────────────── */
+
+function Toggle({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (val: boolean) => void;
+}) {
+  return (
+    <button
+      className={`toggle ${checked ? "toggle--on" : ""}`}
+      onClick={() => onChange(!checked)}
+      role="switch"
+      aria-checked={checked}
+      type="button"
+    >
+      <span className="toggle__knob" />
+    </button>
+  );
+}
+
+/* ── Dashboard ────────────────────────────────────────── */
 
 export function Dashboard() {
   const { disconnect, deviceInfo } = useBluetooth();
@@ -61,14 +114,13 @@ export function Dashboard() {
   const [showSettings, setShowSettings] = useState(false);
   const [pendingTemp, setPendingTemp] = useState<number | null>(null);
 
+  /* Loading state */
   if (!status) {
     return (
-      <Box sx={{ p: 3, textAlign: "center" }}>
-        <Typography color="text.secondary">
-          Waiting for device data...
-        </Typography>
-        <LinearProgress sx={{ mt: 2 }} />
-      </Box>
+      <div className="dash-loading">
+        <div className="dash-loading__spinner" />
+        Waiting for device data…
+      </div>
     );
   }
 
@@ -78,297 +130,325 @@ export function Dashboard() {
   const battery = status.batteryLevel ?? 0;
   const tempDisplay = pendingTemp ?? displayTargetTemp;
 
+  // Boost label for the gauge
+  const boostLabel =
+    status.heaterMode === 2
+      ? "Boost"
+      : status.heaterMode === 3
+        ? "Super Boost"
+        : undefined;
+  const showEffective =
+    status.heaterMode !== null && status.heaterMode > 1;
+
   return (
-    <Box sx={{ pb: 10 }}>
-      {/* Top Bar */}
-      <AppBar position="static" color="transparent" elevation={0}>
-        <Toolbar>
-          <BluetoothConnectedIcon color="primary" sx={{ mr: 1 }} />
-          <Typography variant="body1" sx={{ flexGrow: 1 }}>
-            {deviceInfo.name || "Device"}
-          </Typography>
-          <Chip
-            icon={<BatteryIcon level={battery} />}
-            label={`${battery}%`}
-            size="small"
-            sx={{
-              mr: 1,
-              bgcolor: `${batteryColor(battery)}22`,
-              color: batteryColor(battery),
-              fontWeight: 600,
-            }}
-          />
-          {status.isCharging && (
-            <BoltIcon sx={{ color: "#ff9800", fontSize: 20 }} />
-          )}
-          <IconButton onClick={disconnect} size="small" sx={{ ml: 1 }}>
-            <PowerSettingsNewIcon />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
+    <div className="dashboard">
+      {/* ── Status Bar ──────────────────────────────── */}
+      <div className="dash-status-bar">
+        <div className="dash-status-bar__name">
+          <span className="dash-status-bar__bt-dot" />
+          {deviceInfo.name || "Device"}
+        </div>
 
-      {/* Main Temperature Display */}
-      <Box sx={{ textAlign: "center", py: 4 }}>
-        <Typography
-          variant="h1"
-          fontWeight={800}
-          sx={{
-            fontSize: "5rem",
-            color: status.isHeating ? "warning.main" : "text.primary",
-            transition: "color 0.3s",
-          }}
+        <span
+          className="pill dash-status-bar__battery"
+          style={{ color: batteryColor(battery) }}
         >
-          {tempDisplay}
-        </Typography>
-        <Typography variant="h6" color="text.secondary">
-          Target ({unit})
-        </Typography>
-        {status.heaterMode !== null && status.heaterMode > 1 && (
-          <Typography variant="body2" color="warning.main">
-            Effective: {effectiveTemp} {unit} (
-            {status.heaterMode === 2 ? "Boost" : "Super Boost"})
-          </Typography>
-        )}
-        {status.setpointReached && (
-          <Chip label="Target Reached" color="success" size="small" sx={{ mt: 1 }} />
-        )}
-      </Box>
+          <BatteryBarIcon level={battery} />
+          {battery}%
+        </span>
 
-      {/* Temperature Slider */}
-      <Paper sx={{ mx: 2, p: 3, borderRadius: 3 }} elevation={2}>
-        <Typography variant="overline" color="text.secondary">
-          Temperature
-        </Typography>
-        <Slider
-          value={pendingTemp ?? displayTargetTemp}
+        {status.isCharging && (
+          <span className="dash-status-bar__charging">
+            <BoltIcon />
+          </span>
+        )}
+
+        <button
+          className="btn btn--icon dash-status-bar__disconnect"
+          onClick={disconnect}
+          aria-label="Disconnect"
+        >
+          <PowerIcon />
+        </button>
+      </div>
+
+      {/* ── Radial Gauge ────────────────────────────── */}
+      <div className="dash-gauge-section">
+        <RadialGauge
+          value={tempDisplay}
           min={minTemp}
           max={maxTemp}
-          step={1}
-          onChange={(_, val) => setPendingTemp(val as number)}
-          onChangeCommitted={(_, val) => {
-            const v = val as number;
-            setPendingTemp(null);
-            // Convert back to Celsius if in Fahrenheit mode
-            const celsius = status.isCelsius
-              ? v
-              : Math.round((v - 32) / 1.8);
-            setTargetTemp(celsius);
-          }}
-          valueLabelDisplay="auto"
-          sx={{ mt: 1 }}
+          unit={unit}
+          isHeating={status.isHeating}
+          setpointReached={status.setpointReached}
+          effectiveTemp={showEffective ? effectiveTemp : undefined}
+          boostLabel={boostLabel}
         />
-        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Typography variant="caption" color="text.secondary">
-            {minTemp}{unit}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {maxTemp}{unit}
-          </Typography>
-        </Box>
-      </Paper>
+      </div>
 
-      {/* Heater Control */}
-      <Paper sx={{ mx: 2, mt: 2, p: 2, borderRadius: 3 }} elevation={2}>
-        <Typography variant="overline" color="text.secondary">
-          Heater
-        </Typography>
-        <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-          <Button
-            variant={status.heaterMode === 0 ? "contained" : "outlined"}
-            color="inherit"
-            size="small"
-            onClick={() => setHeaterMode(0)}
-            sx={{ flex: 1 }}
-          >
-            Off
-          </Button>
-          <Button
-            variant={(status.heaterMode ?? 0) > 0 ? "contained" : "outlined"}
-            color="warning"
-            size="small"
-            onClick={() => setHeaterMode((status.heaterMode ?? 0) > 0 ? 0 : 1)}
-            sx={{ flex: 1 }}
-          >
-            {status.heaterMode === 2 ? "Boost" : status.heaterMode === 3 ? "Super Boost" : "Heat"}
-          </Button>
-        </Box>
-      </Paper>
+      {/* ── Temperature Slider ──────────────────────── */}
+      <div className="dash-temp-controls">
+        <div className="glass-card dash-temp-card">
+          <div className="dash-temp-card__header">
+            <span className="dash-temp-card__label">Temperature</span>
+            <span className="dash-temp-card__value">
+              {tempDisplay}°{unit}
+            </span>
+          </div>
+          <input
+            className="range-slider"
+            type="range"
+            min={minTemp}
+            max={maxTemp}
+            step={1}
+            value={pendingTemp ?? displayTargetTemp}
+            onChange={(e) => setPendingTemp(Number(e.target.value))}
+            onMouseUp={(e) => {
+              const v = Number((e.target as HTMLInputElement).value);
+              setPendingTemp(null);
+              const celsius = status.isCelsius
+                ? v
+                : Math.round((v - 32) / 1.8);
+              setTargetTemp(celsius);
+            }}
+            onTouchEnd={(e) => {
+              const v = Number((e.target as HTMLInputElement).value);
+              setPendingTemp(null);
+              const celsius = status.isCelsius
+                ? v
+                : Math.round((v - 32) / 1.8);
+              setTargetTemp(celsius);
+            }}
+          />
+          <div className="dash-temp-card__range-row">
+            <span>{minTemp}°{unit}</span>
+            <span>{maxTemp}°{unit}</span>
+          </div>
+        </div>
+      </div>
 
-      {/* Boost Delta Cards — always visible, click to activate mode */}
-      <Box sx={{ mx: 2, mt: 2, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-        {[
+      {/* ── Heater Toggle ───────────────────────────── */}
+      <div className="dash-heater">
+        <div className="glass-card dash-heater__card">
+          <div>
+            <div className="dash-heater__label">Heater</div>
+            <div className="dash-heater__sublabel">
+              {status.isHeating
+                ? boostLabel
+                  ? `${boostLabel} active`
+                  : "Heating"
+                : "Standby"}
+            </div>
+          </div>
+          <button
+            className={`btn dash-heater__btn ${
+              status.isHeating
+                ? "dash-heater__btn--active"
+                : "btn--ghost"
+            }`}
+            onClick={() =>
+              setHeaterMode(
+                (status.heaterMode ?? 0) > 0 ? 0 : 1
+              )
+            }
+          >
+            {status.isHeating ? "ON" : "OFF"}
+          </button>
+        </div>
+      </div>
+
+      {/* ── Boost Cards ─────────────────────────────── */}
+      <div className="dash-boost-grid">
+        {([
           {
             mode: 2,
             label: "Boost",
             delta: displayBoostDelta,
-            adjust: (d: number) => setBoostTemp(Math.max(0, (status.boostTemp ?? 0) + d)),
+            adjust: (d: number) =>
+              setBoostTemp(
+                Math.max(0, (status.boostTemp ?? 0) + d)
+              ),
           },
           {
             mode: 3,
             label: "Super Boost",
             delta: displaySuperBoostDelta,
-            adjust: (d: number) => setSuperBoostTemp(Math.max(0, (status.superBoostTemp ?? 0) + d)),
+            adjust: (d: number) =>
+              setSuperBoostTemp(
+                Math.max(0, (status.superBoostTemp ?? 0) + d)
+              ),
           },
-        ].map(({ mode, label, delta, adjust }) => {
+        ] as const).map(({ mode, label, delta, adjust }) => {
           const active = status.heaterMode === mode;
           return (
-            <Paper
+            <div
               key={mode}
-              elevation={active ? 4 : 2}
+              className={`glass-card dash-boost-card ${
+                active ? "dash-boost-card--active" : ""
+              }`}
               onClick={() => {
                 if (active) setHeaterMode(1);
                 else setHeaterMode(mode);
               }}
-              sx={{
-                p: 2,
-                borderRadius: 3,
-                textAlign: "center",
-                cursor: "pointer",
-                border: active ? "2px solid" : "2px solid transparent",
-                borderColor: active ? "warning.main" : "transparent",
-                bgcolor: active ? "rgba(255,152,0,0.08)" : "background.paper",
-                transition: "all 0.2s",
-                "&:hover": { borderColor: "warning.main", bgcolor: "rgba(255,152,0,0.05)" },
-              }}
             >
-              <Typography variant="overline" color="text.secondary">
-                {label}
-              </Typography>
-              <Typography
-                variant="h5"
-                fontWeight={700}
-                sx={{ color: "warning.main", my: 0.5 }}
-              >
+              <div className="dash-boost-card__label">{label}</div>
+              <div className="dash-boost-card__delta">
                 +{delta}°{unit}
-              </Typography>
-              <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="warning"
-                  onClick={(e) => { e.stopPropagation(); adjust(-1); }}
-                  sx={{ minWidth: 36, px: 0 }}
+              </div>
+              <div className="dash-boost-card__controls">
+                <button
+                  className="btn btn--icon dash-boost-card__adj-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    adjust(-1);
+                  }}
                 >
                   −
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="warning"
-                  onClick={(e) => { e.stopPropagation(); adjust(1); }}
-                  sx={{ minWidth: 36, px: 0 }}
+                </button>
+                <button
+                  className="btn btn--icon dash-boost-card__adj-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    adjust(1);
+                  }}
                 >
                   +
-                </Button>
-              </Box>
-            </Paper>
+                </button>
+              </div>
+            </div>
           );
         })}
-      </Box>
+      </div>
 
-      {/* Battery Bar */}
-      <Paper sx={{ mx: 2, mt: 2, p: 2, borderRadius: 3 }} elevation={2}>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Typography variant="overline" color="text.secondary">
-            Battery
-          </Typography>
-          <Typography
-            variant="body2"
-            fontWeight={600}
-            sx={{ color: batteryColor(battery) }}
+      {/* ── Battery ─────────────────────────────────── */}
+      <div className="dash-battery">
+        <div className="glass-card dash-battery__card">
+          <div className="dash-battery__header">
+            <span className="dash-battery__label">Battery</span>
+            <span
+              className="dash-battery__percentage"
+              style={{ color: batteryColor(battery) }}
+            >
+              {battery}%
+            </span>
+          </div>
+          <div className="dash-battery__bar">
+            <div
+              className="dash-battery__fill"
+              style={{
+                width: `${battery}%`,
+                background: batteryColor(battery),
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Settings ────────────────────────────────── */}
+      <div className="dash-settings">
+        <div className="glass-card dash-settings__card">
+          <button
+            className="dash-settings__trigger"
+            onClick={() => setShowSettings(!showSettings)}
           >
-            {battery}%
-          </Typography>
-        </Box>
-        <LinearProgress
-          variant="determinate"
-          value={battery}
-          sx={{
-            mt: 1,
-            height: 8,
-            borderRadius: 4,
-            bgcolor: "grey.800",
-            "& .MuiLinearProgress-bar": {
-              bgcolor: batteryColor(battery),
-              borderRadius: 4,
-            },
-          }}
-        />
-      </Paper>
+            <SettingsIcon />
+            <span className="dash-settings__trigger-label">
+              Settings
+            </span>
+            <ChevronDownIcon
+              className={`dash-settings__chevron ${
+                showSettings ? "dash-settings__chevron--open" : ""
+              }`}
+            />
+          </button>
 
-      {/* Settings */}
-      <Paper sx={{ mx: 2, mt: 2, borderRadius: 3 }} elevation={2}>
-        <Button
-          fullWidth
-          onClick={() => setShowSettings(!showSettings)}
-          endIcon={showSettings ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          startIcon={<SettingsIcon />}
-          sx={{ justifyContent: "flex-start", px: 2, py: 1.5, textTransform: "none" }}
-        >
-          Settings
-        </Button>
-        <Collapse in={showSettings}>
-          <Box sx={{ px: 2, pb: 2 }}>
-            <Divider sx={{ mb: 1 }} />
-            <FormControlLabel
-              control={
-                <Switch
+          <div
+            className={`dash-settings__content ${
+              showSettings ? "dash-settings__content--open" : ""
+            }`}
+          >
+            <div className="dash-settings__inner">
+              <div className="dash-settings__divider" />
+
+              {/* Unit toggle */}
+              <div className="dash-settings__row">
+                <span className="dash-settings__row-label">
+                  {status.isCelsius ? "Celsius" : "Fahrenheit"}
+                </span>
+                <Toggle
                   checked={status.isCelsius}
-                  onChange={(_, v) => setIsCelsius(v)}
+                  onChange={(v) => setIsCelsius(v)}
                 />
-              }
-              label={`Units: ${status.isCelsius ? "Celsius" : "Fahrenheit"}`}
-            />
-            <FormControlLabel
-              control={
-                <Switch
+              </div>
+
+              {/* Eco Charge Current */}
+              <div className="dash-settings__row">
+                <span className="dash-settings__row-label">
+                  Eco Charge Current
+                </span>
+                <Toggle
                   checked={status.chargeCurrentOptimization}
-                  onChange={(_, v) => setChargeCurrentOptimization(v)}
+                  onChange={(v) => setChargeCurrentOptimization(v)}
                 />
-              }
-              label="Eco Charge Current"
-            />
-            <FormControlLabel
-              control={
-                <Switch
+              </div>
+
+              {/* Eco Charge Voltage */}
+              <div className="dash-settings__row">
+                <span className="dash-settings__row-label">
+                  Eco Charge Voltage
+                </span>
+                <Toggle
                   checked={status.chargeVoltageLimit}
-                  onChange={(_, v) => setChargeVoltageLimit(v)}
+                  onChange={(v) => setChargeVoltageLimit(v)}
                 />
-              }
-              label="Eco Charge Voltage"
-            />
-            <FormControlLabel
-              control={
-                <Switch
+              </div>
+
+              {/* Permanent Bluetooth */}
+              <div className="dash-settings__row">
+                <span className="dash-settings__row-label">
+                  Permanent Bluetooth
+                </span>
+                <Toggle
                   checked={status.permanentBluetooth}
-                  onChange={(_, v) => setPermanentBluetooth(v)}
+                  onChange={(v) => setPermanentBluetooth(v)}
                 />
-              }
-              label="Permanent Bluetooth"
-            />
-            <Divider sx={{ my: 1 }} />
-            <Typography variant="overline" color="text.secondary">
-              Auto-Shutdown (seconds)
-            </Typography>
-            <Slider
-              value={status.autoShutdownTimer ?? 0}
-              min={0}
-              max={600}
-              step={30}
-              onChangeCommitted={(_, val) =>
-                setAutoShutdownTimer(val as number)
-              }
-              valueLabelDisplay="auto"
-            />
-          </Box>
-        </Collapse>
-      </Paper>
-    </Box>
+              </div>
+
+              <div className="dash-settings__divider" />
+
+              {/* Auto-Shutdown */}
+              <div className="dash-settings__slider-section">
+                <div className="dash-settings__row">
+                  <span className="dash-settings__slider-label">
+                    Auto-Shutdown
+                  </span>
+                  <span className="dash-settings__slider-value">
+                    {status.autoShutdownTimer ?? 0}s
+                  </span>
+                </div>
+                <input
+                  className="range-slider"
+                  type="range"
+                  min={0}
+                  max={600}
+                  step={30}
+                  value={status.autoShutdownTimer ?? 0}
+                  onMouseUp={(e) =>
+                    setAutoShutdownTimer(
+                      Number((e.target as HTMLInputElement).value)
+                    )
+                  }
+                  onTouchEnd={(e) =>
+                    setAutoShutdownTimer(
+                      Number((e.target as HTMLInputElement).value)
+                    )
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

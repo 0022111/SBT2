@@ -12,8 +12,8 @@ export default defineConfig({
         name: "SBT2 - Device Controller",
         short_name: "SBT2",
         description: "BLE controller for Storz & Bickel devices",
-        theme_color: "#1a1a2e",
-        background_color: "#1a1a2e",
+        theme_color: "#0a0a0f",
+        background_color: "#0a0a0f",
         display: "standalone",
         orientation: "portrait",
         icons: [

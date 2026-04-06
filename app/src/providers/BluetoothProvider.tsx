@@ -147,26 +147,26 @@ export function BluetoothProvider({ children }: { children: React.ReactNode }) {
     try {
       const filters = isIOS()
         ? [
-            { namePrefix: "STORZ&BICKEL" },
-            { namePrefix: "Storz&Bickel" },
-            { namePrefix: "S&B" },
-          ]
+          { namePrefix: "STORZ&BICKEL" },
+          { namePrefix: "Storz&Bickel" },
+          { namePrefix: "S&B" },
+        ]
         : [
-            { namePrefix: "STORZ&BICKEL" },
-            { namePrefix: "Storz&Bickel" },
-            { namePrefix: "S&B" },
-            {
-              services: [
-                ServiceUUIDs.Crafty1,
-                ServiceUUIDs.Crafty2,
-                ServiceUUIDs.Crafty3,
-              ],
-            },
-            {
-              services: [ServiceUUIDs.DeviceState, ServiceUUIDs.DeviceControl],
-            },
-            { services: [ServiceUUIDs.Primary] },
-          ];
+          { namePrefix: "STORZ&BICKEL" },
+          { namePrefix: "Storz&Bickel" },
+          { namePrefix: "S&B" },
+          {
+            services: [
+              ServiceUUIDs.Crafty1,
+              ServiceUUIDs.Crafty2,
+              ServiceUUIDs.Crafty3,
+            ],
+          },
+          {
+            services: [ServiceUUIDs.DeviceState, ServiceUUIDs.DeviceControl],
+          },
+          { services: [ServiceUUIDs.Primary] },
+        ];
 
       const device = await navigator.bluetooth.requestDevice({
         filters,

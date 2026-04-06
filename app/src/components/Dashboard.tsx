@@ -183,6 +183,7 @@ export function Dashboard() {
           setpointReached={status.setpointReached}
           effectiveTemp={showEffective ? effectiveTemp : undefined}
           boostLabel={boostLabel}
+          isHitInProgress={status.isHitInProgress}
         />
       </div>
 

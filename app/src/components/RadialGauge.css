@@ -54,6 +54,34 @@
   }
 }
 
+/* Breathing Hit Ring */
+.gauge__hit-ring {
+  fill: none;
+  stroke: var(--accent);
+  stroke-linecap: round;
+  transform-origin: center;
+  animation: hit-breathe 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes hit-breathe {
+  0% {
+    opacity: 0.1;
+    stroke-width: 6;
+    filter: drop-shadow(0 0 4px var(--accent-glow));
+  }
+  50% {
+    opacity: 0.8;
+    stroke-width: 14;
+    filter: drop-shadow(0 0 16px var(--accent-glow));
+  }
+  100% {
+    opacity: 0.1;
+    stroke-width: 6;
+    filter: drop-shadow(0 0 4px var(--accent-glow));
+  }
+}
+
 /* Center content overlay */
 .gauge__center {
   position: absolute;

@@ -44,6 +44,8 @@ export function Dashboard() {
   const {
     status,
     displayTargetTemp,
+    displayBoostDelta,
+    displaySuperBoostDelta,
     effectiveTemp,
     setTargetTemp,
     setBoostTemp,
@@ -170,50 +172,99 @@ export function Dashboard() {
         <Typography variant="overline" color="text.secondary">
           Heater
         </Typography>
-        <Box sx={{ display: "flex", gap: 1, mt: 1, flexWrap: "wrap" }}>
-          {[
-            { mode: 0, label: "Off" },
-            { mode: 1, label: "Heat" },
-            { mode: 2, label: "Boost" },
-            { mode: 3, label: "Super Boost" },
-          ].map(({ mode, label }) => (
-            <Button
-              key={mode}
-              variant={status.heaterMode === mode ? "contained" : "outlined"}
-              color={mode === 0 ? "inherit" : "warning"}
-              size="small"
-              onClick={() => setHeaterMode(mode)}
-              sx={{ flex: 1, minWidth: 70 }}
-            >
-              {label}
-            </Button>
-          ))}
+        <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+          <Button
+            variant={status.heaterMode === 0 ? "contained" : "outlined"}
+            color="inherit"
+            size="small"
+            onClick={() => setHeaterMode(0)}
+            sx={{ flex: 1 }}
+          >
+            Off
+          </Button>
+          <Button
+            variant={(status.heaterMode ?? 0) > 0 ? "contained" : "outlined"}
+            color="warning"
+            size="small"
+            onClick={() => setHeaterMode((status.heaterMode ?? 0) > 0 ? 0 : 1)}
+            sx={{ flex: 1 }}
+          >
+            {status.heaterMode === 2 ? "Boost" : status.heaterMode === 3 ? "Super Boost" : "Heat"}
+          </Button>
         </Box>
       </Paper>
 
-      {/* Boost Temps */}
-      {(status.heaterMode === 2 || status.heaterMode === 3) && (
-        <Paper sx={{ mx: 2, mt: 2, p: 2, borderRadius: 3 }} elevation={2}>
-          <Typography variant="overline" color="text.secondary">
-            {status.heaterMode === 2 ? "Boost" : "Super Boost"} Offset
-          </Typography>
-          <Slider
-            value={
-              status.heaterMode === 2
-                ? status.boostTemp ?? 0
-                : status.superBoostTemp ?? 0
-            }
-            min={0}
-            max={50}
-            step={1}
-            onChange={(_, val) => {
-              if (status.heaterMode === 2) setBoostTemp(val as number);
-              else setSuperBoostTemp(val as number);
-            }}
-            valueLabelDisplay="auto"
-          />
-        </Paper>
-      )}
+      {/* Boost Delta Cards — always visible, click to activate mode */}
+      <Box sx={{ mx: 2, mt: 2, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+        {[
+          {
+            mode: 2,
+            label: "Boost",
+            delta: displayBoostDelta,
+            adjust: (d: number) => setBoostTemp(Math.max(0, (status.boostTemp ?? 0) + d)),
+          },
+          {
+            mode: 3,
+            label: "Super Boost",
+            delta: displaySuperBoostDelta,
+            adjust: (d: number) => setSuperBoostTemp(Math.max(0, (status.superBoostTemp ?? 0) + d)),
+          },
+        ].map(({ mode, label, delta, adjust }) => {
+          const active = status.heaterMode === mode;
+          return (
+            <Paper
+              key={mode}
+              elevation={active ? 4 : 2}
+              onClick={() => {
+                if (active) setHeaterMode(1);
+                else setHeaterMode(mode);
+              }}
+              sx={{
+                p: 2,
+                borderRadius: 3,
+                textAlign: "center",
+                cursor: "pointer",
+                border: active ? "2px solid" : "2px solid transparent",
+                borderColor: active ? "warning.main" : "transparent",
+                bgcolor: active ? "rgba(255,152,0,0.08)" : "background.paper",
+                transition: "all 0.2s",
+                "&:hover": { borderColor: "warning.main", bgcolor: "rgba(255,152,0,0.05)" },
+              }}
+            >
+              <Typography variant="overline" color="text.secondary">
+                {label}
+              </Typography>
+              <Typography
+                variant="h5"
+                fontWeight={700}
+                sx={{ color: "warning.main", my: 0.5 }}
+              >
+                +{delta}°{unit}
+              </Typography>
+              <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="warning"
+                  onClick={(e) => { e.stopPropagation(); adjust(-1); }}
+                  sx={{ minWidth: 36, px: 0 }}
+                >
+                  −
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="warning"
+                  onClick={(e) => { e.stopPropagation(); adjust(1); }}
+                  sx={{ minWidth: 36, px: 0 }}
+                >
+                  +
+                </Button>
+              </Box>
+            </Paper>
+          );
+        })}
+      </Box>
 
       {/* Battery Bar */}
       <Paper sx={{ mx: 2, mt: 2, p: 2, borderRadius: 3 }} elevation={2}>

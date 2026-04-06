@@ -232,6 +232,17 @@ export function useDeviceStatus(pollInterval = 500) {
       : convertToF(status.targetTemp)
     : 0;
 
+  // Delta display: offset in °F = offset in °C × 1.8 (no +32, it's a delta not absolute)
+  const displayBoostDelta = (() => {
+    const raw = status?.boostTemp ?? 0;
+    return isCelsius ? raw : Math.round(raw * 1.8);
+  })();
+
+  const displaySuperBoostDelta = (() => {
+    const raw = status?.superBoostTemp ?? 0;
+    return isCelsius ? raw : Math.round(raw * 1.8);
+  })();
+
   const effectiveTemp = (() => {
     if (!status) return 0;
     const target = status.targetTemp ?? 0;
@@ -246,6 +257,8 @@ export function useDeviceStatus(pollInterval = 500) {
   return {
     status,
     displayTargetTemp,
+    displayBoostDelta,
+    displaySuperBoostDelta,
     effectiveTemp,
     setTargetTemp,
     setBoostTemp,

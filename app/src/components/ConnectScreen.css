@@ -199,65 +199,7 @@
   perspective: 800px;
 }
 
-.cyber-head__svg {
-  position: relative;
-  z-index: 2;
-  width: 180px;
-  height: 195px;
-  animation: head-float 5s ease-in-out infinite;
-  filter:
-    drop-shadow(0 0 12px rgba(0, 229, 255, 0.4))
-    drop-shadow(0 0 30px rgba(0, 229, 255, 0.15))
-    drop-shadow(0 25px 40px rgba(0, 0, 0, 0.9));
-}
-
-/* Animated eye glow */
-.cyber-eye {
-  animation: eye-glow 3s ease-in-out infinite;
-}
-
-@keyframes eye-glow {
-  0%, 100% {
-    filter: brightness(1);
-  }
-  50% {
-    filter: brightness(1.4) drop-shadow(0 0 6px rgba(0, 229, 255, 0.8));
-  }
-}
-
-/* Antenna tip blink */
-.antenna-tip {
-  animation: led-blink 0.8s step-end infinite;
-  filter: drop-shadow(0 0 4px var(--cyber-cyan-glow));
-}
-
-/* Status LED on mouth */
-.status-led {
-  animation: led-blink 2s step-end infinite;
-  filter: drop-shadow(0 0 3px var(--cyber-green-glow));
-}
-
-/* Scan beam sweeping across the face */
-.cyber-head__scan-beam {
-  position: absolute;
-  z-index: 3;
-  top: 20px;
-  left: 30px;
-  right: 30px;
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(0, 229, 255, 0.6) 20%,
-    rgba(0, 229, 255, 0.9) 50%,
-    rgba(0, 229, 255, 0.6) 80%,
-    transparent 100%
-  );
-  box-shadow: 0 0 8px var(--cyber-cyan-glow), 0 0 16px rgba(0, 229, 255, 0.2);
-  animation: scan-down 4s ease-in-out infinite;
-  pointer-events: none;
-  border-radius: 2px;
-}
+/* (3D head is rendered by CyberWireframeHead / Three.js canvas) */
 
 /* ── ORBITAL RINGS ── */
 .cyber-head__orbital-wrap {

@@ -1,0 +1,23 @@
+/* ============================================================
+   CyberWireframeHead — canvas container
+   ============================================================ */
+
+.cyber-wireframe-head {
+  width: 210px;
+  height: 230px;
+  position: relative;
+  z-index: 2;
+  /* Outer CSS glow behind the canvas */
+  filter:
+    drop-shadow(0 0 12px rgba(0, 255, 65, 0.55))
+    drop-shadow(0 0 35px rgba(0, 255, 65, 0.18))
+    drop-shadow(0 0 70px rgba(0, 255, 65, 0.06));
+  animation: head-float 5s ease-in-out infinite;
+}
+
+/* Make the Three.js canvas fill the wrapper */
+.cyber-wireframe-head canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}

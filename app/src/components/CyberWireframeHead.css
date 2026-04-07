@@ -1,21 +1,25 @@
 /* ============================================================
-   CyberWireframeHead — canvas container
+   CyberWireframeHead
    ============================================================ */
 
+/*
+  Performance notes:
+  - NO filter/drop-shadow here — CSS blur filters on an animated canvas
+    force per-frame GPU compositing which kills mobile FPS.
+  - The float animation lives on the .cyber-head parent (ConnectScreen.css)
+    so the compositing layer boundary doesn't include the canvas itself.
+  - Glow is handled entirely inside Three.js (additive-blended LineSegments).
+*/
+
 .cyber-wireframe-head {
-  width: 210px;
-  height: 230px;
+  width: 220px;
+  height: 240px;
   position: relative;
   z-index: 2;
-  /* Outer CSS glow behind the canvas */
-  filter:
-    drop-shadow(0 0 12px rgba(0, 255, 65, 0.55))
-    drop-shadow(0 0 35px rgba(0, 255, 65, 0.18))
-    drop-shadow(0 0 70px rgba(0, 255, 65, 0.06));
-  animation: head-float 5s ease-in-out infinite;
+  /* Promote to its own compositing layer so transforms are GPU-only */
+  will-change: transform;
 }
 
-/* Make the Three.js canvas fill the wrapper */
 .cyber-wireframe-head canvas {
   width: 100% !important;
   height: 100% !important;

@@ -190,13 +190,16 @@
 /* ── CYBER HEAD ── */
 .cyber-head {
   position: relative;
-  width: 240px;
-  height: 240px;
+  width: 260px;
+  height: 260px;
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: fade-in 1s var(--ease-out) 0.2s both;
+  animation: fade-in 1s var(--ease-out) 0.2s both,
+             head-float 5s ease-in-out 1s infinite;
   perspective: 800px;
+  /* Own compositing layer — float animation stays on GPU */
+  will-change: transform;
 }
 
 /* (3D head is rendered by CyberWireframeHead / Three.js canvas) */

@@ -1,6 +1,79 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import "./CyberWireframeHead.css";
+
+// --- Procedural head fallback ------------------------------------------------
+// LatheGeometry profile: [radius, y] from crown to chin
+const HEAD_PROFILE_PTS: [number, number][] = [
+  [0.04, 1.24],
+  [0.28, 1.17],
+  [0.52, 1.04],
+  [0.68, 0.82],
+  [0.76, 0.56],
+  [0.80, 0.28],  // cheekbone (max width)
+  [0.78, 0.00],
+  [0.70, -0.22],
+  [0.60, -0.42],
+  [0.48, -0.60],
+  [0.34, -0.74],
+  [0.18, -0.86],
+  [0.06, -0.94],
+  [0.01, -0.98],
+];
+
+function buildProceduralHead(): THREE.LineSegments {
+  const profile = HEAD_PROFILE_PTS.map(
+    ([r, y]) => new THREE.Vector2(r, y)
+  );
+  const lathe = new THREE.LatheGeometry(profile, 28, 0, Math.PI * 2);
+  const edges = new THREE.EdgesGeometry(lathe, 10);
+  lathe.dispose();
+  return new THREE.LineSegments(
+    edges,
+    new THREE.LineBasicMaterial({ color: 0x00ff41, transparent: true, opacity: 0.88 })
+  );
+}
+
+// --- Glow (single aura copy) ------------------------------------------------
+function buildGlowCopy(geo: THREE.BufferGeometry): THREE.LineSegments {
+  return new THREE.LineSegments(
+    geo,
+    new THREE.LineBasicMaterial({
+      color: 0x00ff41,
+      transparent: true,
+      opacity: 0.08,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    })
+  );
+}
+
+// --- Wire-ify a GLTF scene --------------------------------------------------
+function wireifyGLTF(root: THREE.Object3D): THREE.Group {
+  const group = new THREE.Group();
+  root.traverse((child) => {
+    if (!(child instanceof THREE.Mesh)) return;
+    const edges = new THREE.EdgesGeometry(child.geometry, 12);
+    const wire = new THREE.LineSegments(
+      edges,
+      new THREE.LineBasicMaterial({ color: 0x00ff41, transparent: true, opacity: 0.88 })
+    );
+    // Copy world position/rotation of this mesh into the group space
+    child.updateWorldMatrix(true, false);
+    wire.applyMatrix4(child.matrixWorld);
+    group.add(wire);
+
+    // Glow copy
+    const glow = buildGlowCopy(edges);
+    glow.applyMatrix4(child.matrixWorld);
+    glow.scale.setScalar(1.02);
+    group.add(glow);
+  });
+  return group;
+}
+
+// ----------------------------------------------------------------------------
 
 export function CyberWireframeHead() {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -12,112 +85,66 @@ export function CyberWireframeHead() {
     const W = mount.clientWidth || 220;
     const H = mount.clientHeight || 240;
 
-    /* ── RENDERER ── */
+    /* Renderer */
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(W, H);
     renderer.setClearColor(0x000000, 0);
     mount.appendChild(renderer.domElement);
 
-    /* ── SCENE / CAMERA ── */
+    /* Scene / camera */
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(40, W / H, 0.1, 100);
-    camera.position.z = 3.4;
+    const camera = new THREE.PerspectiveCamera(38, W / H, 0.1, 100);
+    camera.position.z = 3.6;
 
-    /* ── BUILD HEAD GEOMETRY from a sphere with vertex shaping ── */
-    const geo = new THREE.SphereGeometry(1, 20, 16);
-    const pos = geo.attributes.position as THREE.BufferAttribute;
-
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i);
-      let y = pos.getY(i);
-      let z = pos.getZ(i);
-
-      // Narrow the chin / jaw
-      if (y < -0.35) {
-        const t = (-y - 0.35) / 0.65; // 0→1 toward bottom
-        const shrink = 1 - t * 0.48;
-        pos.setX(i, x * shrink);
-        z = z * shrink;
-      }
-
-      // Flatten crown
-      if (y > 0.82) {
-        y = 0.82 + (y - 0.82) * 0.55;
-        pos.setY(i, y);
-      }
-
-      // Nose protrusion — front-centre, mid-y band
-      const frontness = Math.max(0, z); // positive Z = front
-      const yBand = Math.max(0, 1 - Math.abs(y + 0.15) * 2.8); // peak at y≈-0.15
-      if (frontness > 0 && yBand > 0) {
-        pos.setZ(i, z + frontness * yBand * 0.15);
-      }
-
-      // Brow ridge — slight forward push at forehead
-      const browFrontness = Math.max(0, z);
-      const browBand = Math.max(0, 1 - Math.abs(y - 0.38) * 5);
-      if (browFrontness > 0 && browBand > 0) {
-        pos.setZ(i, pos.getZ(i) + browFrontness * browBand * 0.06);
-      }
-
-      // Cheekbone width — widen slightly at cheek height
-      const cheekBand = Math.max(0, 1 - Math.abs(y + 0.05) * 3);
-      if (cheekBand > 0) {
-        pos.setX(i, pos.getX(i) * (1 + cheekBand * 0.06));
-      }
-    }
-
-    pos.needsUpdate = true;
-    geo.computeVertexNormals();
-
-    /* ── GROUPS ── */
+    /* Group that gets rotated */
     const headGroup = new THREE.Group();
-    headGroup.scale.set(0.86, 1.14, 0.88); // head proportions
+    headGroup.scale.set(0.9, 1.12, 0.88);
     scene.add(headGroup);
 
-    /* Main wireframe */
-    const wireGeo = new THREE.WireframeGeometry(geo);
-    const wireMat = new THREE.LineBasicMaterial({
-      color: 0x00ff41,
-      transparent: true,
-      opacity: 0.88,
-    });
-    const wireHead = new THREE.LineSegments(wireGeo, wireMat);
-    headGroup.add(wireHead);
+    /* ── Load head.glb → fallback to procedural ── */
+    const loader = new GLTFLoader();
+    let glowMats: THREE.LineBasicMaterial[] = [];
 
-    /* Inner glow copy — slightly smaller, higher opacity on vertices */
-    const innerGeo = new THREE.WireframeGeometry(geo);
-    const innerMat = new THREE.LineBasicMaterial({
-      color: 0x00ff41,
-      transparent: true,
-      opacity: 0.25,
-      blending: THREE.AdditiveBlending,
-    });
-    const innerHead = new THREE.LineSegments(innerGeo, innerMat);
-    innerHead.scale.setScalar(0.97);
-    headGroup.add(innerHead);
+    const applyHead = (obj: THREE.Object3D | null) => {
+      if (obj) {
+        headGroup.add(obj);
+        // Collect glow materials for pulsing
+        obj.traverse((c) => {
+          if (c instanceof THREE.LineSegments) {
+            const m = c.material as THREE.LineBasicMaterial;
+            if (m.blending === THREE.AdditiveBlending) glowMats.push(m);
+          }
+        });
+      } else {
+        // Procedural fallback
+        const head = buildProceduralHead();
+        headGroup.add(head);
 
-    /* Outer glow aura */
-    const outerGeo = new THREE.WireframeGeometry(geo);
-    const outerMat = new THREE.LineBasicMaterial({
-      color: 0x00ff41,
-      transparent: true,
-      opacity: 0.07,
-      blending: THREE.AdditiveBlending,
-    });
-    const outerHead = new THREE.LineSegments(outerGeo, outerMat);
-    outerHead.scale.setScalar(1.05);
-    headGroup.add(outerHead);
+        const glowGeo = (head.geometry as THREE.BufferGeometry).clone();
+        const glow = buildGlowCopy(glowGeo);
+        glow.scale.setScalar(1.04);
+        headGroup.add(glow);
+        glowMats.push(glow.material as THREE.LineBasicMaterial);
+      }
+    };
 
-    /* ── POINTER DRAG ── */
+    loader.load(
+      "/head.glb",
+      (gltf) => applyHead(wireifyGLTF(gltf.scene)),
+      undefined,
+      () => applyHead(null) // silently fallback
+    );
+
+    /* ── Drag to rotate — throttled via RAF ── */
     let dragging = false;
-    let prevX = 0;
-    let prevY = 0;
-    let velX = 0;
-    let velY = 0;
+    let prevX = 0, prevY = 0;
+    let velX = 0, velY = 0;
     let autoRotate = true;
     let resumeTimer: ReturnType<typeof setTimeout> | null = null;
+    // RAF-throttle state
+    let pendingMove = false;
+    let pendingDX = 0, pendingDY = 0;
 
     const getXY = (e: MouseEvent | TouchEvent) => {
       const p = "touches" in e ? e.touches[0] : (e as MouseEvent);
@@ -129,36 +156,24 @@ export function CyberWireframeHead() {
       autoRotate = false;
       if (resumeTimer) clearTimeout(resumeTimer);
       const { x, y } = getXY(e);
-      prevX = x;
-      prevY = y;
-      velX = 0;
-      velY = 0;
+      prevX = x; prevY = y;
+      velX = 0; velY = 0;
       renderer.domElement.style.cursor = "grabbing";
     };
 
     const onMove = (e: MouseEvent | TouchEvent) => {
       if (!dragging) return;
       const { x, y } = getXY(e);
-      const dx = x - prevX;
-      const dy = y - prevY;
-      headGroup.rotation.y += dx * 0.013;
-      headGroup.rotation.x += dy * 0.013;
-      headGroup.rotation.x = Math.max(
-        -Math.PI * 0.45,
-        Math.min(Math.PI * 0.45, headGroup.rotation.x)
-      );
-      velX = dx;
-      velY = dy;
-      prevX = x;
-      prevY = y;
+      pendingDX += x - prevX;
+      pendingDY += y - prevY;
+      prevX = x; prevY = y;
+      pendingMove = true;
     };
 
     const onUp = () => {
       dragging = false;
       renderer.domElement.style.cursor = "grab";
-      resumeTimer = setTimeout(() => {
-        autoRotate = true;
-      }, 2500);
+      resumeTimer = setTimeout(() => { autoRotate = true; }, 2500);
     };
 
     const el = renderer.domElement;
@@ -170,7 +185,7 @@ export function CyberWireframeHead() {
     window.addEventListener("touchend", onUp);
     el.style.cursor = "grab";
 
-    /* ── ANIMATION ── */
+    /* ── Animation loop ── */
     let animId: number;
     const clock = new THREE.Clock();
 
@@ -178,27 +193,41 @@ export function CyberWireframeHead() {
       animId = requestAnimationFrame(animate);
       const t = clock.getElapsedTime();
 
+      // Apply batched mouse delta once per frame
+      if (pendingMove) {
+        headGroup.rotation.y += pendingDX * 0.013;
+        headGroup.rotation.x = Math.max(
+          -Math.PI * 0.45,
+          Math.min(Math.PI * 0.45, headGroup.rotation.x + pendingDY * 0.013)
+        );
+        velX = pendingDX;
+        velY = pendingDY;
+        pendingDX = 0; pendingDY = 0;
+        pendingMove = false;
+      }
+
       if (autoRotate) {
         headGroup.rotation.y += 0.005;
         headGroup.rotation.x = Math.sin(t * 0.4) * 0.06;
       } else if (!dragging) {
-        // inertia
-        velX *= 0.90;
-        velY *= 0.90;
+        velX *= 0.88;
+        velY *= 0.88;
         headGroup.rotation.y += velX * 0.008;
-        headGroup.rotation.x += velY * 0.008;
+        headGroup.rotation.x = Math.max(
+          -Math.PI * 0.45,
+          Math.min(Math.PI * 0.45, headGroup.rotation.x + velY * 0.008)
+        );
       }
 
       // Pulse glow opacity
-      outerMat.opacity = 0.05 + Math.sin(t * 1.8) * 0.03;
-      innerMat.opacity = 0.18 + Math.sin(t * 1.2) * 0.08;
+      const glowOpacity = 0.05 + Math.sin(t * 1.8) * 0.03;
+      for (const m of glowMats) m.opacity = glowOpacity;
 
       renderer.render(scene, camera);
     };
-
     animate();
 
-    /* ── RESIZE ── */
+    /* Resize */
     const ro = new ResizeObserver(() => {
       const w = mount.clientWidth;
       const h = mount.clientHeight;
@@ -219,13 +248,6 @@ export function CyberWireframeHead() {
       window.removeEventListener("touchmove", onMove);
       window.removeEventListener("touchend", onUp);
       ro.disconnect();
-      geo.dispose();
-      wireGeo.dispose();
-      innerGeo.dispose();
-      outerGeo.dispose();
-      wireMat.dispose();
-      innerMat.dispose();
-      outerMat.dispose();
       renderer.dispose();
       if (mount.contains(el)) mount.removeChild(el);
     };

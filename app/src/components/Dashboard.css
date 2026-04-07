@@ -1,72 +1,144 @@
 /* ============================================================
-   Dashboard — Styles
+   Dashboard — CYBER EDITION
    ============================================================ */
 
 .dashboard {
   min-height: 100dvh;
   padding-bottom: var(--space-2xl);
   animation: fade-in 0.4s var(--ease-out);
+  background: var(--bg-void);
+  position: relative;
 }
 
-/* --- Status Bar --- */
+/* Background grid */
+.dashboard::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 229, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.02) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── STATUS BAR ── */
 .dash-status-bar {
   display: flex;
   align-items: center;
-  padding: var(--space-md) var(--space-lg);
+  padding: var(--space-sm) var(--space-md);
   gap: var(--space-sm);
+  border-bottom: 1px solid var(--border-cyan);
+  background: rgba(0, 20, 30, 0.8);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 20px rgba(0, 229, 255, 0.05);
+}
+
+/* HUD corner on status bar */
+.dash-status-bar::before {
+  content: '◈';
+  font-size: 0.6rem;
+  color: var(--cyber-green);
+  opacity: 0.5;
+  animation: led-blink 2s step-end infinite;
+  margin-right: 2px;
 }
 
 .dash-status-bar__name {
   flex: 1;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-data);
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+  letter-spacing: 1px;
+  text-shadow: 0 0 6px var(--cyber-cyan-glow);
 }
 
 .dash-status-bar__bt-dot {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent-glow);
-  animation: breathe 2s ease-in-out infinite;
+  border-radius: 0;
+  background: var(--cyber-green);
+  box-shadow:
+    0 0 6px var(--cyber-green-glow),
+    0 0 12px rgba(0, 255, 65, 0.3);
+  animation: led-blink 1.2s step-end infinite;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
 }
 
 .dash-status-bar__battery {
-  font-size: 0.8125rem;
+  font-size: 0.625rem;
+  letter-spacing: 1px;
 }
 
 .dash-status-bar__charging {
-  color: var(--accent);
+  color: var(--cyber-orange);
   display: flex;
   align-items: center;
+  filter: drop-shadow(0 0 4px var(--cyber-orange-glow));
+  animation: breathe 1s ease-in-out infinite;
 }
 
 .dash-status-bar__disconnect {
-  width: 36px;
-  height: 36px;
-  font-size: 0.75rem;
+  width: 34px;
+  height: 34px;
+  font-size: 0.6875rem;
+  color: var(--cyber-red);
+  border-color: rgba(255, 17, 51, 0.3);
 }
 
-/* --- Gauge Section --- */
+.dash-status-bar__disconnect:hover {
+  color: var(--cyber-red);
+  border-color: var(--cyber-red);
+  box-shadow: 0 0 10px var(--cyber-red-glow);
+}
+
+/* ── GAUGE SECTION ── */
 .dash-gauge-section {
   padding: var(--space-lg) var(--space-lg) var(--space-md);
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
-/* --- Temp Controls --- */
+/* Ambient glow behind gauge */
+.dash-gauge-section::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 255, 65, 0.04) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  animation: breathe 4s ease-in-out infinite;
+}
+
+/* ── TEMP CONTROLS ── */
 .dash-temp-controls {
-  padding: 0 var(--space-lg);
+  padding: 0 var(--space-md);
   margin-top: var(--space-md);
+  position: relative;
+  z-index: 1;
 }
 
 .dash-temp-card {
-  padding: var(--space-lg);
+  padding: var(--space-md) var(--space-lg);
 }
 
 .dash-temp-card__header {
@@ -77,32 +149,41 @@
 }
 
 .dash-temp-card__label {
-  font-size: 0.6875rem;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 3px;
   color: var(--text-tertiary);
 }
 
 .dash-temp-card__value {
-  font-size: 0.875rem;
+  font-family: var(--font);
+  font-size: 0.9375rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--cyber-cyan);
+  text-shadow: 0 0 10px var(--cyber-cyan-glow);
+  letter-spacing: 1px;
+  animation: breathe 3s ease-in-out infinite;
 }
 
 .dash-temp-card__range-row {
   display: flex;
   justify-content: space-between;
   margin-top: var(--space-sm);
-  font-size: 0.6875rem;
-  color: var(--text-tertiary);
-  font-weight: 500;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  color: var(--text-ghost);
+  font-weight: 400;
+  letter-spacing: 1px;
 }
 
-/* --- Heater Toggle --- */
+/* ── HEATER TOGGLE ── */
 .dash-heater {
-  padding: 0 var(--space-lg);
+  padding: 0 var(--space-md);
   margin-top: var(--space-md);
+  position: relative;
+  z-index: 1;
 }
 
 .dash-heater__card {
@@ -113,43 +194,74 @@
 }
 
 .dash-heater__label {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-family: var(--font);
+  font-size: 0.75rem;
+  font-weight: 700;
   color: var(--text-primary);
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
 .dash-heater__sublabel {
-  font-size: 0.75rem;
-  color: var(--text-tertiary);
-  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  color: var(--text-secondary);
+  margin-top: 3px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
 }
 
 .dash-heater__btn {
-  min-width: 72px;
-  padding: 10px 24px;
-  font-weight: 700;
-  font-size: 0.8125rem;
+  min-width: 80px;
+  padding: 10px 20px;
+  font-weight: 900;
+  font-size: 0.75rem;
+  letter-spacing: 3px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .dash-heater__btn--active {
-  background: var(--accent);
-  color: #0a0a0f;
-  box-shadow: var(--shadow-glow);
+  background: linear-gradient(135deg, #1a3300, #254d00, #1a3300) !important;
+  color: var(--cyber-green) !important;
+  border: 1px solid var(--cyber-green) !important;
+  box-shadow:
+    0 0 15px var(--cyber-green-glow),
+    0 0 40px rgba(0, 255, 65, 0.1),
+    inset 0 0 15px rgba(0, 255, 65, 0.05) !important;
+  text-shadow:
+    0 0 8px var(--cyber-green-glow),
+    0 0 20px rgba(0, 255, 65, 0.4) !important;
+  animation: heater-pulse 2s ease-in-out infinite;
+}
+
+@keyframes heater-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 15px var(--cyber-green-glow),
+      0 0 40px rgba(0, 255, 65, 0.1),
+      inset 0 0 15px rgba(0, 255, 65, 0.05);
+  }
+  50% {
+    box-shadow:
+      0 0 25px var(--cyber-green-glow),
+      0 0 70px rgba(0, 255, 65, 0.2),
+      inset 0 0 25px rgba(0, 255, 65, 0.08);
+  }
 }
 
 .dash-heater__btn--active:hover {
-  background: var(--accent-bright);
+  background: linear-gradient(135deg, #223d00, #336600, #223d00) !important;
 }
 
-/* --- Boost Grid --- */
+/* ── BOOST GRID ── */
 .dash-boost-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-md);
-  padding: 0 var(--space-lg);
+  padding: 0 var(--space-md);
   margin-top: var(--space-md);
+  position: relative;
+  z-index: 1;
 }
 
 .dash-boost-card {
@@ -159,32 +271,76 @@
   transition: all var(--duration-normal) var(--ease-out);
   user-select: none;
   -webkit-user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Scan beam on hover */
+.dash-boost-card::after {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--cyber-cyan),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.dash-boost-card:hover::after {
+  opacity: 0.5;
+  animation: scan-down 1s ease-in-out infinite;
 }
 
 .dash-boost-card:active {
-  transform: scale(0.97);
+  transform: scale(0.97) translateY(1px);
 }
 
 .dash-boost-card--active {
-  border-color: var(--accent) !important;
-  background: var(--accent-soft) !important;
-  box-shadow: var(--shadow-glow);
+  border-color: var(--cyber-cyan) !important;
+  background: rgba(0, 229, 255, 0.05) !important;
+  box-shadow:
+    0 0 20px var(--cyber-cyan-glow),
+    inset 0 0 20px rgba(0, 229, 255, 0.03) !important;
+}
+
+.dash-boost-card--active::before {
+  border-color: var(--cyber-cyan) !important;
 }
 
 .dash-boost-card__label {
-  font-size: 0.6875rem;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 2.5px;
   color: var(--text-tertiary);
   margin-bottom: var(--space-xs);
 }
 
 .dash-boost-card__delta {
-  font-size: 1.5rem;
+  font-family: var(--font);
+  font-size: 1.75rem;
   font-weight: 800;
-  color: var(--accent);
+  color: var(--cyber-cyan);
   margin-bottom: var(--space-sm);
+  text-shadow: 0 0 15px var(--cyber-cyan-glow);
+  letter-spacing: -1px;
+  transition: color 0.3s, text-shadow 0.3s;
+}
+
+.dash-boost-card--active .dash-boost-card__delta {
+  color: var(--cyber-cyan);
+  text-shadow:
+    0 0 15px var(--cyber-cyan-glow),
+    0 0 40px rgba(0, 229, 255, 0.3);
+  animation: breathe 2s ease-in-out infinite;
 }
 
 .dash-boost-card__controls {
@@ -194,23 +350,28 @@
 }
 
 .dash-boost-card__adj-btn {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   font-size: 1.125rem;
   font-weight: 700;
-  color: var(--accent);
-  border: 1px solid var(--accent-soft);
+  color: var(--cyber-cyan);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  clip-path: none;
 }
 
 .dash-boost-card__adj-btn:hover {
-  background: var(--accent-soft);
-  border-color: var(--accent);
+  background: rgba(0, 229, 255, 0.08);
+  border-color: var(--cyber-cyan);
+  box-shadow: 0 0 8px var(--cyber-cyan-glow);
+  color: white;
 }
 
-/* --- Battery --- */
+/* ── BATTERY ── */
 .dash-battery {
-  padding: 0 var(--space-lg);
+  padding: 0 var(--space-md);
   margin-top: var(--space-md);
+  position: relative;
+  z-index: 1;
 }
 
 .dash-battery__card {
@@ -225,36 +386,70 @@
 }
 
 .dash-battery__label {
-  font-size: 0.6875rem;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 3px;
   color: var(--text-tertiary);
 }
 
 .dash-battery__percentage {
+  font-family: var(--font);
   font-size: 0.875rem;
   font-weight: 700;
+  letter-spacing: 1px;
 }
 
+/* Segmented battery bar */
 .dash-battery__bar {
   width: 100%;
-  height: 6px;
-  border-radius: 3px;
-  background: var(--bg-glass-active);
+  height: 10px;
+  background: #050f08;
   overflow: hidden;
+  position: relative;
+  border: 1px solid var(--border-cyber);
+}
+
+/* Segment dividers */
+.dash-battery__bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent calc(10% - 1px),
+    rgba(0, 0, 0, 0.6) calc(10% - 1px),
+    rgba(0, 0, 0, 0.6) 10%
+  );
+  pointer-events: none;
+  z-index: 1;
 }
 
 .dash-battery__fill {
   height: 100%;
-  border-radius: 3px;
   transition: width 0.8s var(--ease-out), background 0.4s;
+  position: relative;
 }
 
-/* --- Settings --- */
+/* Glow on fill */
+.dash-battery__fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+}
+
+/* ── SETTINGS ── */
 .dash-settings {
-  padding: 0 var(--space-lg);
+  padding: 0 var(--space-md);
   margin-top: var(--space-md);
+  position: relative;
+  z-index: 1;
 }
 
 .dash-settings__card {
@@ -270,21 +465,26 @@
   background: none;
   border: none;
   color: var(--text-secondary);
-  font-family: var(--font);
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 400;
   cursor: pointer;
   transition: color var(--duration-fast);
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
 .dash-settings__trigger:hover {
-  color: var(--text-primary);
+  color: var(--cyber-green);
+  text-shadow: 0 0 8px var(--cyber-green-glow);
 }
 
 .dash-settings__trigger svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
+  color: var(--cyber-green);
+  filter: drop-shadow(0 0 3px var(--cyber-green-glow));
 }
 
 .dash-settings__trigger-label {
@@ -319,7 +519,12 @@
 
 .dash-settings__divider {
   height: 1px;
-  background: var(--border-subtle);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--border-cyan),
+    transparent
+  );
   margin: 0 calc(-1 * var(--space-lg));
 }
 
@@ -330,9 +535,11 @@
 }
 
 .dash-settings__row-label {
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 400;
   color: var(--text-primary);
+  letter-spacing: 0.5px;
 }
 
 .dash-settings__slider-section {
@@ -342,21 +549,24 @@
 }
 
 .dash-settings__slider-label {
-  font-size: 0.6875rem;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 3px;
   color: var(--text-tertiary);
 }
 
 .dash-settings__slider-value {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--accent);
+  font-family: var(--font);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--cyber-cyan);
   text-align: right;
+  text-shadow: 0 0 6px var(--cyber-cyan-glow);
 }
 
-/* --- Loading State --- */
+/* ── LOADING STATE ── */
 .dash-loading {
   display: flex;
   flex-direction: column;
@@ -364,16 +574,25 @@
   justify-content: center;
   min-height: 100dvh;
   gap: var(--space-lg);
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  font-weight: 500;
+  color: var(--cyber-green);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 3px;
+  text-shadow: 0 0 8px var(--cyber-green-glow);
+  animation: neon-flicker 3s ease-in-out infinite;
 }
 
 .dash-loading__spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--bg-glass-active);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--border-cyber);
+  border-top-color: var(--cyber-green);
+  border-right-color: rgba(0, 255, 65, 0.5);
+  border-radius: 0;
+  animation: spin 0.5s linear infinite;
+  box-shadow:
+    0 0 10px var(--cyber-green-glow),
+    inset 0 0 10px rgba(0, 255, 65, 0.05);
+  clip-path: none;
 }
